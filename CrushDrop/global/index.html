@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrushDrop</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Авторизация -->
+    <div id="auth-screen" class="auth-container">
+        <h1>CrushDrop</h1>
+        <p>Введите ник и пароль (запомните их!)</p>
+        <input type="text" id="auth-nick" placeholder="Придумайте ник">
+        <input type="password" id="auth-pass" placeholder="Придумайте пароль">
+        <button onclick="login()">Войти / Создать аккаунт</button>
+    </div>
+
+    <!-- Основной сайт -->
+    <div id="main-site" style="display: none;">
+        <header class="navbar">
+            <div class="logo" onclick="switchTab('crash')">CrushDrop</div>
+            
+            <nav class="tabs">
+                <div class="dropdown">
+                    <button class="tab-btn dropdown-toggle">Игры ▼</button>
+                    <div class="dropdown-content">
+                        <button onclick="switchTab('crash')">Краш</button>
+                        <button onclick="switchTab('ladder')">Лесенка</button>
+                        <button onclick="switchTab('mines')">Сапер</button>
+                        <button onclick="switchTab('pass')">HD Pass</button>
+                        <button onclick="openModal('promoModal')">Промокоды</button>
+                    </div>
+                </div>
+                <button class="tab-btn" onclick="switchTab('inventory')">Инвентарь</button>
+                <button class="tab-btn" id="clan-nav-btn" onclick="switchTab('clan')" style="display: none;">Кланы</button>
+            </nav>
+
+            <div class="balance-container">
+                <button class="add-funds-btn" id="addFunds" onclick="openModal('depositModal')">+</button>
+                <div class="balance-info">
+                    <span class="coin-icon">G</span>
+                    <span class="balance-amount" id="balance">0</span>
+                </div>
+                <div class="divider"></div>
+                <div class="profile" onclick="openModal('profileModal')">
+                    <div class="avatar">
+                        <img id="header-avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="User">
+                        <span class="status-dot"></span>
+                    </div>
+                    <span class="dropdown-arrow">▼</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- КРАШ -->
+        <main id="tab-crash" class="tab-content active">
+            <div class="crash-layout">
+                <div class="crash-left">
+                    <div class="crash-info-top">
+                        <span class="game-id">N Номер игры <span id="crash-game-id">13919818</span></span>
+                    </div>
+                    <div class="crash-canvas-container">
+                        <div id="crash-multiplier" class="crash-multiplier-display">x1.00</div>
+                        <canvas id="crash-canvas"></canvas>
+                    </div>
+                    <div class="crash-history" id="crash-history"></div>
+                </div>
+                <div class="crash-right">
+                    <div class="control-box">
+                        <div class="control-label"><span class="icon-stack">🪙</span> Сумма ставки</div>
+                        <div class="input-wrapper crash-input">
+                            <input type="number" id="crash-bet" placeholder="0.00" min="1">
+                            <span class="coin-symbol">G</span>
+                        </div>
+                    </div>
+                    <div class="control-box">
+                        <div class="control-label"><span class="icon-stop">⛔</span> Авто стоп</div>
+                        <div class="input-wrapper crash-input">
+                            <input type="number" id="crash-autostop" placeholder="0.00" step="0.1" min="1.01">
+                        </div>
+                    </div>
+                    <button id="crash-action-btn" class="crash-btn-play" onclick="toggleCrash()">Играть</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- ЛЕСЕНКА -->
+        <main id="tab-ladder" class="tab-content">
+            <div class="ladder-layout">
+                <div class="ladder-left-panel" id="ladder-panel">
+                    <div class="ladder-game-area" id="ladder-game-area">
+                        <div class="ladder-grid" id="ladder-grid"></div>
+                        <div class="character-icon" id="character-icon" style="display: none;">🧗</div>
+                        <div class="falling-rocks" id="falling-rocks"></div>
+                    </div>
+                </div>
+                <div class="ladder-right-panel">
+                    <div class="control-box">
+                        <h3>Сумма ставки</h3>
+                        <div class="bet-input-wrapper">
+                            <input type="number" id="ladder-bet" value="1" min="1">
+                            <span class="coin-symbol">G</span>
+                        </div>
+                    </div>
+                    <div class="control-box">
+                        <h3>Кол-во камней</h3>
+                        <div class="stones-selector" id="stones-selector">
+                            <button class="stone-btn" onclick="selectStones(1)">1</button>
+                            <button class="stone-btn" onclick="selectStones(2)">2</button>
+                            <button class="stone-btn active" onclick="selectStones(3)">3</button>
+                            <button class="stone-btn" onclick="selectStones(4)">4</button>
+                            <button class="stone-btn" onclick="selectStones(5)">5</button>
+                            <button class="stone-btn" onclick="selectStones(6)">6</button>
+                            <button class="stone-btn" onclick="selectStones(7)">7</button>
+                        </div>
+                    </div>
+                    <button id="ladder-main-btn" class="main-action-btn" onclick="handleLadderButton()">Начать игру</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- САПЕР -->
+        <main id="tab-mines" class="tab-content">
+            <div class="mines-header">
+                <div class="mines-title"><span class="bomb-icon">💣</span> Сапёр</div>
+            </div>
+            <div class="mines-main-layout">
+                <div class="mines-game-panel">
+                    <div class="mines-grid" id="mines-grid"></div>
+                    <div class="mines-controls">
+                        <div class="mc-block mc-max-win">
+                            <div class="mc-label">Макс. выигрыш</div>
+                            <div class="mc-value"><span id="mines-max-win">0</span> <span class="mc-coin">🪙</span></div>
+                        </div>
+                        <div class="mc-block mc-traps">
+                            <button class="mc-arrow" id="mines-trap-minus">‹</button>
+                            <div class="mc-trap-info">
+                                <div class="mc-value" id="mines-trap-count">3</div>
+                                <div class="mc-label">Ловушки</div>
+                            </div>
+                            <button class="mc-arrow" id="mines-trap-plus">›</button>
+                        </div>
+                        <div class="mc-block mc-bet">
+                            <input type="number" id="mines-bet-input" class="mc-bet-input" value="1" min="1">
+                            <button class="mc-btn-small" id="mines-btn-half">1/2</button>
+                            <button class="mc-btn-small" id="mines-btn-double">x2</button>
+                        </div>
+                        <button class="mc-play-btn" id="mines-play-btn">Играть</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- HD PASS -->
+        <main id="tab-pass" class="tab-content">
+            <div class="pass-header">
+                <h2>HD PASS - Сезон 1</h2>
+                <div class="pass-progress-bar">
+                    <div class="progress-fill" id="pass-progress-fill" style="width: 0%;"></div>
+                    <span class="progress-text">Уровень: <b id="pass-level">1</b> | XP: <span id="pass-xp">0</span> / <span id="pass-xp-req">100</span></span>
+                </div>
+            </div>
+            <div class="pass-container">
+                <div class="pass-track free-track">
+                    <div class="track-title">Free Pass</div>
+                    <div class="track-levels" id="free-track-levels"></div>
+                </div>
+                <div class="pass-track prime-track">
+                    <div class="track-title">Prime Pass</div>
+                    <div class="track-levels" id="prime-track-levels"></div>
+                </div>
+            </div>
+            <div class="pass-actions">
+                <button class="buy-prime-btn" onclick="buyPrimePass()">Купить Prime Pass (1500 G)</button>
+            </div>
+        </main>
+
+        <!-- КЛАНЫ -->
+        <main id="tab-clan" class="tab-content">
+            <div id="clan-no-clan">
+                <h2 style="text-align: center; margin-bottom: 20px;">У вас нет клана</h2>
+                <div class="clan-actions-grid">
+                    <div class="control-box">
+                        <h3>Создать клан (500 G)</h3>
+                        <input type="text" id="create-clan-name" placeholder="Название (Только англ)" class="input-field">
+                        <button onclick="createClan()" class="main-action-btn" style="background: #ffcc00; color: black;">Создать</button>
+                    </div>
+                    <div class="control-box">
+                        <h3>Вступить в клан</h3>
+                        <input type="text" id="join-clan-name" placeholder="Название клана" class="input-field">
+                        <input type="text" id="join-clan-msg" placeholder="Сообщение" class="input-field">
+                        <button onclick="applyToClan()" class="main-action-btn">Подать заявку</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="clan-in-clan" style="display: none;">
+                <div class="clan-header">
+                    <h2 id="clan-title-display">Клан</h2>
+                    <button onclick="leaveClan()" class="leave-clan-btn">Покинуть клан</button>
+                </div>
+                <div class="clan-layout">
+                    <div class="clan-members">
+                        <h3>Участники</h3>
+                        <ul id="clan-members-list"></ul>
+                    </div>
+                    <div class="clan-mail" id="clan-mail-section">
+                        <h3>Почта клана (Заявки)</h3>
+                        <div id="clan-applications-list"></div>
+                    </div>
+                    <div class="clan-top">
+                        <h3>Топ кланов (по G)</h3>
+                        <ul id="clan-global-top"></ul>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- ИНВЕНТАРЬ -->
+        <main id="tab-inventory" class="tab-content">
+            <h2 style="text-align: center; margin-bottom: 20px;">Ваш Инвентарь</h2>
+            <div class="inventory" id="user-inventory"></div>
+            <div id="empty-inv-msg" style="text-align: center; color: #888; display: none; margin-top: 50px;">У вас пока нет предметов.</div>
+        </main>
+    </div>
+
+    <!-- МОДАЛКИ -->
+    <div class="modal" id="promoModal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('promoModal')">&times;</span>
+            <h2>Активация промокода</h2>
+            <input type="text" id="promo-input" placeholder="Введите код" class="input-field" style="text-transform: uppercase;">
+            <button class="action-btn" onclick="applyPromo()">Активировать</button>
+        </div>
+    </div>
+
+    <div class="modal" id="profileModal">
+        <div class="modal-content profile-modal-content">
+            <span class="close" onclick="closeModal('profileModal')">&times;</span>
+            <div class="profile-header">
+                <div class="avatar-upload-wrapper">
+                    <img id="profile-avatar-img" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" class="profile-avatar-large">
+                    <button class="change-avatar-btn" onclick="document.getElementById('avatar-upload').click()">Сменить</button>
+                    <input type="file" id="avatar-upload" accept="image/*" style="display: none;" onchange="handleAvatarUpload(event)">
+                </div>
+                <div class="profile-details">
+                    <h2 id="profile-nick">Ник</h2>
+                    <p><strong>ID:</strong> <span id="profile-id"></span></p>
+                    <p><strong>Баланс:</strong> <span id="profile-balance" style="color: #ffcc00; font-weight:bold;"></span> G</p>
+                    <p id="luck-status" style="color: #00ff00; font-weight: bold; margin-top: 5px; display: none;">✨ Удача активна! ✨</p>
+                </div>
+            </div>
+
+            <div class="author-code-section" style="border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 15px;">
+                <h3>Изменить ник</h3>
+                <div class="row-input">
+                    <input type="text" id="new-nick-input" placeholder="Новый ник" class="input-field">
+                    <button onclick="changeNickname()" class="action-btn" style="background:#ffcc00; color:black;">Сменить</button>
+                </div>
+            </div>
+
+            <div id="user-author-section" class="author-code-section">
+                <h3>Код автора</h3>
+                <div class="row-input">
+                    <input type="text" id="author-code-input" placeholder="Введите код" class="input-field">
+                    <button onclick="applyAuthorCode()" class="action-btn">Ввести</button>
+                </div>
+            </div>
+
+            <div id="author-dashboard" class="author-code-section" style="display: none;">
+                <h3 style="color: #ffcc00;">👑 Панель Автора</h3>
+                <p>Заработано: <span id="author-earnings" style="color: #00ff00; font-weight:bold;">0</span> G</p>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="steam-btn" onclick="closeModal('profileModal'); switchTab('clan')" style="background: #3b82f6;">Мой Клан</button>
+                <button class="steam-btn" onclick="logout()" style="background: #d32f2f;">Выйти</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ПОПОЛНЕНИЕ (БЕЗ КНОПОК ТЕСТА) -->
+    <div class="modal" id="depositModal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('depositModal')">&times;</span>
+            <h2>Пополнение</h2>
+            <p style="color: #aaa; margin-bottom: 15px;">Для пополнения баланса переведите CS2 скины на нашего бота.</p>
+            <button class="steam-btn">Войти через Steam</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
